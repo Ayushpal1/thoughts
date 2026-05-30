@@ -1,32 +1,116 @@
 import { Point } from "../domain/point";
 
 export function attachCanvasEvents(canvas, engine) {
-  const getPoint = e => new Point(e.offsetX, e.offsetY)
+  // const getPoint = e => new Point(e.offsetX, e.offsetY)
+
+  function getCanvasPoint(e) {
+
+    const rect =
+        canvas.getBoundingClientRect();
+
+    return new Point(
+        e.clientX - rect.left,
+        e.clientY - rect.top
+    );
+}
 
   let isDrawing = false;
 
-canvas.addEventListener("pointerdown", e => {
+  canvas.addEventListener("pointerdown", e => {
+
+    canvas.setPointerCapture(
+    e.pointerId
+);
     isDrawing = true;
 
-    engine.activeTool?.onPointerDown(
-        engine.camera.screenToWorld(getPoint(e))
-    );
-});
+    const worldPoint =
+      engine.camera.screenToWorld(
+        getCanvasPoint(e)
+      );
 
-canvas.addEventListener("pointermove", e => {
+    const node =
+      engine.findNodeAt(
+        worldPoint
+      );
+    engine.selectedNode = node;
+
+    if (node) {
+
+      engine.draggingNode = node;
+
+      engine.dragOffsetX =
+        worldPoint.x - node.x;
+
+      engine.dragOffsetY =
+        worldPoint.y - node.y;
+    }
+
+    if (!node) {
+      engine.activeTool?.onPointerDown(
+        worldPoint
+      );
+    }
+  });
+
+  window.addEventListener("pointermove", e => {
+    const screenPoint =
+    getCanvasPoint(e);
+
+const worldPoint =
+    engine.camera.screenToWorld(
+        screenPoint
+    );
+
+    if (engine.draggingNode) {
+
+      engine.draggingNode.x =
+        worldPoint.x -
+        engine.dragOffsetX;
+
+      engine.draggingNode.y =
+        worldPoint.y -
+        engine.dragOffsetY;
+
+      engine.save();
+
+      return;
+    }
     if (!isDrawing) return;
 
-    engine.activeTool?.onPointerMove(
-        engine.camera.screenToWorld(getPoint(e))
-    );
-});
+    if (!engine.draggingNode) {
+      engine.activeTool?.onPointerMove(
+        worldPoint
+      );
+    }
+  });
 
-canvas.addEventListener("pointerup", e => {
+  window.addEventListener("pointerup", e => {
+
+    const screenPoint =
+        getCanvasPoint(e);
+
+    const worldPoint =
+        engine.camera.screenToWorld(
+            screenPoint
+        );
+
+    const wasDragging =
+        !!engine.draggingNode;
+
+    engine.draggingNode = null;
+
     isDrawing = false;
 
-    engine.activeTool?.onPointerUp(
-        engine.camera.screenToWorld(getPoint(e))
+    canvas.releasePointerCapture(
+        e.pointerId
     );
+
+    if (!wasDragging) {
+
+        engine.activeTool?.onPointerUp(
+            worldPoint
+        );
+    }
 });
 
   canvas.addEventListener("wheel", e => {
@@ -36,7 +120,7 @@ canvas.addEventListener("pointerup", e => {
 }
 
 export class ConnectionCreationStrategy {
-    handlePointerDown(node) {}
-    handlePointerMove(node) {}
-    handlePointerUp(node) {}
+  handlePointerDown(node) { }
+  handlePointerMove(node) { }
+  handlePointerUp(node) { }
 }
