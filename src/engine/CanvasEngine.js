@@ -3,9 +3,9 @@ import { GridRenderer } from "./GridRenderer.js";
 
 import { WordNode } from "../domain/WordNode.js";
 import { Connection } from "../domain/Connection.js";
+import { InteractionMode } from "../domain/InteractionMode.js";
 
-import { StorageManager }
-    from "../storage/StorageManager.js";
+import { StorageManager } from "../storage/StorageManager.js";
 
 export class CanvasEngine {
 
