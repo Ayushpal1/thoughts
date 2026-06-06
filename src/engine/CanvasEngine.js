@@ -5,7 +5,7 @@ import { WordNode } from "../domain/WordNode.js";
 import { Connection } from "../domain/Connection.js";
 
 import { StorageManager }
-from "../storage/StorageManager.js";
+    from "../storage/StorageManager.js";
 
 export class CanvasEngine {
 
@@ -30,8 +30,12 @@ export class CanvasEngine {
 
         this.selectedNode = null;
         this.draggingNode = null;
-this.dragOffsetX = 0;
-this.dragOffsetY = 0;
+        this.dragOffsetX = 0;
+        this.dragOffsetY = 0;
+
+        this.connectionSource = null;
+
+        this.connectionPreview = null;
 
         this.load();
     }
@@ -41,17 +45,17 @@ this.dragOffsetY = 0;
     }
 
     // addShape(shape) {
-        // this.shapes.push(shape);
+    // this.shapes.push(shape);
     // }
     addShape(shape) {
 
-    console.log(
-        "Shapes:",
-        this.shapes.length + 1
-    );
+        console.log(
+            "Shapes:",
+            this.shapes.length + 1
+        );
 
-    this.shapes.push(shape);
-}
+        this.shapes.push(shape);
+    }
 
     setPreviewShape(shape) {
         this.previewShape = shape;
@@ -128,6 +132,28 @@ this.dragOffsetY = 0;
         sourceId,
         targetId
     ) {
+        const exists =
+            this.connections.some(
+                c =>
+                    (
+                        c.sourceId ===
+                        sourceId &&
+                        c.targetId ===
+                        targetId
+                    )
+                    ||
+                    (
+                        c.sourceId ===
+                        targetId &&
+                        c.targetId ===
+                        sourceId
+                    )
+            );
+
+        if (exists) {
+            return;
+        }
+        
         this.connections.push(
             new Connection(
                 crypto.randomUUID(),
@@ -227,9 +253,7 @@ this.dragOffsetY = 0;
             );
         }
 
-        if (
-            this.previewShape
-        ) {
+        if (this.previewShape) {
             this.previewShape.draw(
                 ctx,
                 this.camera
@@ -245,6 +269,14 @@ this.dragOffsetY = 0;
                 this.camera,
                 this.selectedNode?.id ===
                 node.id
+            );
+        }
+
+        if (this.connectionPreview) {
+
+            this.connectionPreview.draw(
+                ctx,
+                this.camera
             );
         }
     }

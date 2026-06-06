@@ -11,8 +11,10 @@ import './style.css';
 
 
 const canvas = document.getElementById("canvas")
-canvas.width = window.innerWidth
-canvas.height = window.innerHeight
+// canvas.width = window.innerWidth
+// canvas.height = window.innerHeight
+
+resizeCanvas();
 
 const ctx = canvas.getContext("2d")
 const engine = new CanvasEngine(ctx)
@@ -39,8 +41,7 @@ const addWordBtn =
         "addWordBtn"
     );
 
-addWordBtn.addEventListener(
-    "click",
+addWordBtn.addEventListener("click",
     () => nodeModal.open()
 );
 const nodeActions =
@@ -58,8 +59,7 @@ const deleteBtn =
         "deleteNodeBtn"
     );
 
-editBtn.addEventListener(
-    "click",
+editBtn.addEventListener("click",
     () => {
 
         if (
@@ -87,6 +87,20 @@ deleteBtn.addEventListener(
         nodeActions.style.display =
             "none";
     }
+);
+
+function resizeCanvas() {
+
+    canvas.width =
+        window.innerWidth;
+
+    canvas.height =
+        window.innerHeight;
+}
+
+window.addEventListener(
+    "resize",
+    resizeCanvas
 );
 
 function loop() {

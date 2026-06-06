@@ -1,4 +1,6 @@
 import { Point } from "../domain/point";
+import { PreviewConnection }
+  from "../domain/PreviewConnection.js";
 
 export function attachCanvasEvents(canvas, engine) {
   // const getPoint = e => new Point(e.offsetX, e.offsetY)
@@ -6,22 +8,25 @@ export function attachCanvasEvents(canvas, engine) {
   function getCanvasPoint(e) {
 
     const rect =
-        canvas.getBoundingClientRect();
+      canvas.getBoundingClientRect();
 
     return new Point(
-        e.clientX - rect.left,
-        e.clientY - rect.top
+      e.clientX - rect.left,
+      e.clientY - rect.top
     );
-}
+  }
 
   let isDrawing = false;
 
   canvas.addEventListener("pointerdown", e => {
 
     canvas.setPointerCapture(
-    e.pointerId
-);
-    isDrawing = true;
+      e.pointerId
+    );
+
+    if (e.button === 0) {
+      isDrawing = true;
+    }
 
     const worldPoint =
       engine.camera.screenToWorld(
@@ -32,6 +37,19 @@ export function attachCanvasEvents(canvas, engine) {
       engine.findNodeAt(
         worldPoint
       );
+
+    if (e.button === 2) {
+
+      isDrawing = false;
+
+      if (node) {
+
+        engine.connectionSource =
+          node;
+      }
+
+      return;
+    }
     engine.selectedNode = node;
 
     if (node) {
@@ -54,12 +72,31 @@ export function attachCanvasEvents(canvas, engine) {
 
   window.addEventListener("pointermove", e => {
     const screenPoint =
-    getCanvasPoint(e);
+      getCanvasPoint(e);
 
-const worldPoint =
-    engine.camera.screenToWorld(
+    const worldPoint =
+      engine.camera.screenToWorld(
         screenPoint
-    );
+      );
+
+    if (
+      engine.connectionSource
+    ) {
+
+      const source =
+        engine.connectionSource;
+
+      engine.connectionPreview =
+        new PreviewConnection(
+          source.x,
+          source.y,
+          worldPoint.x,
+          worldPoint.y
+        );
+      console.log("connection line preview.");
+
+      return;
+    }
 
     if (engine.draggingNode) {
 
@@ -77,7 +114,7 @@ const worldPoint =
     }
     if (!isDrawing) return;
 
-    if (!engine.draggingNode) {
+    if (!engine.draggingNode && isDrawing) {
       engine.activeTool?.onPointerMove(
         worldPoint
       );
@@ -85,38 +122,76 @@ const worldPoint =
   });
 
   window.addEventListener("pointerup", e => {
+    console.log("WINDOW POINTER UP");
 
     const screenPoint =
-        getCanvasPoint(e);
+      getCanvasPoint(e);
 
     const worldPoint =
-        engine.camera.screenToWorld(
-            screenPoint
+      engine.camera.screenToWorld(
+        screenPoint
+      );
+
+    if (
+      engine.connectionSource
+    ) {
+
+      const target =
+        engine.findNodeAt(
+          worldPoint
         );
 
+      if (
+        target &&
+        target.id !==
+        engine.connectionSource.id
+      ) {
+
+        engine.addConnection(
+          engine.connectionSource.id,
+          target.id
+        );
+      }
+
+      engine.connectionSource =
+        null;
+
+      engine.connectionPreview =
+        null;
+
+      return;
+    }
+
     const wasDragging =
-        !!engine.draggingNode;
+      !!engine.draggingNode;
+
+    const wasDrawing =
+      isDrawing;
 
     engine.draggingNode = null;
 
     isDrawing = false;
 
     canvas.releasePointerCapture(
-        e.pointerId
+      e.pointerId
     );
 
-    if (!wasDragging) {
-
-        engine.activeTool?.onPointerUp(
-            worldPoint
-        );
+    if (!wasDragging && wasDrawing) {
+      engine.activeTool?.onPointerUp(
+        worldPoint
+      );
     }
-});
+  });
 
   canvas.addEventListener("wheel", e => {
     e.preventDefault()
     engine.camera.zoom *= e.deltaY < 0 ? 1.1 : 0.9
   })
+
+  canvas.addEventListener(
+    "contextmenu",
+    e => e.preventDefault()
+  );
 }
 
 export class ConnectionCreationStrategy {
