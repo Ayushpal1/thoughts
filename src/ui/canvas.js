@@ -16,8 +16,6 @@ export function attachCanvasEvents(canvas, engine) {
     );
   }
 
-  // let isDrawing = false;
-
   canvas.addEventListener("pointerdown", e => {
 
     canvas.setPointerCapture(e.pointerId);
@@ -25,13 +23,6 @@ export function attachCanvasEvents(canvas, engine) {
     const worldPoint = engine.camera.screenToWorld(getCanvasPoint(e));
 
     const node = engine.findNodeAt(worldPoint);
-
-    /*if (e.button === 0) {
-      // isDrawing = true;
-      engine.interactionMode = InteractionMode.DRAWING;
-    }*/
-
-
 
     if (e.button === 2) {
       if (node) {

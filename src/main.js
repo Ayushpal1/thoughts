@@ -2,8 +2,8 @@ import { CanvasEngine } from "./engine/CanvasEngine.js"
 import { attachCanvasEvents } from "./ui/canvas.js"
 import { PenTool } from "./tools/PenTool.js"
 import { PanTool } from "./tools/PanTool.js"
-import { NodeModal }
-from "./ui/NodeModal.js";
+import { NodeModal } from "./ui/NodeModal.js";
+import { TodoPanel } from "./ui/TodoPanel.js";
 import './style.css';
 
 // console.log("main.js loaded");
@@ -19,6 +19,7 @@ resizeCanvas();
 const ctx = canvas.getContext("2d")
 const engine = new CanvasEngine(ctx)
 const nodeModal = new NodeModal(engine);
+const todoPanel = new TodoPanel();
 
 // this will get the currently selected color from the component.
 const colorPicker = document.getElementById("colorPicker");
