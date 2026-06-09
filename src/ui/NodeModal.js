@@ -40,22 +40,23 @@ export class NodeModal {
             );
     }
 
- open(node = null) {
+    open(node = null) {
 
-    console.log("OPEN MODAL CALLED");
+        console.log("OPEN MODAL CALLED");
 
-    this.editingNode = node;
+        this.editingNode = node;
 
-    this.wordInput.value =
-        node?.text || "";
+        this.wordInput.value =
+            node?.text || "";
 
-    this.tagInput.value =
-        node?.tag || "";
+        this.tagInput.value =
+            node?.tags?.join(", ")
+            || "";
 
-    this.modal.classList.remove(
-        "hidden"
-    );
-}
+        this.modal.classList.remove(
+            "hidden"
+        );
+    }
 
     close() {
 
@@ -71,8 +72,19 @@ export class NodeModal {
         const word =
             this.wordInput.value.trim();
 
-        const tag =
-            this.tagInput.value.trim();
+        const tags =
+            this.tagInput.value
+                .split(",")
+                .map(
+                    tag =>
+                        tag
+                            .trim()
+                            .toLowerCase()
+                )
+                .filter(
+                    tag =>
+                        tag.length > 0
+                );
 
         if (!word) return;
 
@@ -81,28 +93,28 @@ export class NodeModal {
             this.engine.updateNode(
                 this.editingNode.id,
                 word,
-                tag
+                tags
             );
 
         } else {
-const camera =
-    this.engine.camera;
+            const camera =
+                this.engine.camera;
 
-const canvas =
-    this.engine.ctx.canvas;
+            const canvas =
+                this.engine.ctx.canvas;
 
-const centerWorld =
-    camera.screenToWorld({
-        x: canvas.width / 2,
-        y: canvas.height / 2
-    });
+            const centerWorld =
+                camera.screenToWorld({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2
+                });
 
-this.engine.addNode(
-    word,
-    tag,
-    centerWorld.x,
-    centerWorld.y
-);
+            this.engine.addNode(
+                word,
+                tags,
+                centerWorld.x,
+                centerWorld.y
+            );
         }
 
         this.close();

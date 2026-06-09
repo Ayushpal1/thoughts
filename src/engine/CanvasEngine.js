@@ -5,6 +5,8 @@ import { WordNode } from "../domain/WordNode.js";
 import { Connection } from "../domain/Connection.js";
 import { InteractionMode } from "../domain/InteractionMode.js";
 
+import { GroupRenderer } from "../renderers/GroupRenderer.js";
+
 import { StorageManager } from "../storage/StorageManager.js";
 
 export class CanvasEngine {
@@ -36,6 +38,9 @@ export class CanvasEngine {
         this.connectionSource = null;
 
         this.connectionPreview = null;
+        this.interactionMode = InteractionMode.IDLE;
+
+        this.groupRenderer = new GroupRenderer();
 
         this.load();
     }
@@ -65,42 +70,27 @@ export class CanvasEngine {
         this.previewShape = null;
     }
 
-    addNode(
-        text,
-        tag,
-        x = 0,
-        y = 0
-    ) {
-        const node =
-            new WordNode(
-                crypto.randomUUID(),
-                text,
-                tag,
-                x,
-                y
-            );
+    addNode(text, tags, x = 0, y = 0) {
+        const node = new WordNode(crypto.randomUUID(), text, tags, x, y);
 
         this.nodes.push(node);
 
         this.save();
 
+        console.log(this.getGroups());
+
         return node;
     }
 
-    updateNode(
-        id,
-        text,
-        tag
-    ) {
-        const node =
-            this.nodes.find(
-                n => n.id === id
-            );
+    updateNode(id, text, tags) {
+        const node = this.nodes.find(n => n.id === id);
 
         if (!node) return;
 
         node.text = text;
-        node.tag = tag;
+        node.tags = tags;
+
+        console.log(this.getGroups());
 
         this.save();
     }
@@ -153,7 +143,7 @@ export class CanvasEngine {
         if (exists) {
             return;
         }
-        
+
         this.connections.push(
             new Connection(
                 crypto.randomUUID(),
@@ -178,6 +168,24 @@ export class CanvasEngine {
         );
     }
 
+    getGroups() {
+        const groups = new Map();
+
+        for (const node of this.nodes) {
+            const tags = node.tags?.length ? node.tags : ["untagged"];
+
+            for (const tag of tags) {
+                if (!groups.has(tag)) {
+                    groups.set(tag,[]);
+                }
+
+                groups.get(tag).push(node);
+            }
+        }
+
+        return groups;
+    }
+
     save() {
         StorageManager.save(this);
     }
@@ -189,14 +197,13 @@ export class CanvasEngine {
 
         this.nodes =
             data.nodes.map(
-                n =>
-                    new WordNode(
-                        n.id,
-                        n.text,
-                        n.tag,
-                        n.x,
-                        n.y
-                    )
+                n => new WordNode(
+                    n.id,
+                    n.text,
+                    n.tags || [],
+                    n.x,
+                    n.y
+                )
             );
 
         this.connections =
@@ -271,6 +278,8 @@ export class CanvasEngine {
                 node.id
             );
         }
+
+        this.groupRenderer.draw(ctx, this.camera, this.getGroups());
 
         if (this.connectionPreview) {
 
