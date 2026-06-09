@@ -70,8 +70,8 @@ export class CanvasEngine {
         this.previewShape = null;
     }
 
-    addNode(text, tag, x = 0, y = 0) {
-        const node = new WordNode(crypto.randomUUID(), text, tag, x, y);
+    addNode(text, tags, x = 0, y = 0) {
+        const node = new WordNode(crypto.randomUUID(), text, tags, x, y);
 
         this.nodes.push(node);
 
@@ -82,13 +82,13 @@ export class CanvasEngine {
         return node;
     }
 
-    updateNode(id, text, tag) {
+    updateNode(id, text, tags) {
         const node = this.nodes.find(n => n.id === id);
 
         if (!node) return;
 
         node.text = text;
-        node.tag = tag;
+        node.tags = tags;
 
         console.log(this.getGroups());
 
@@ -172,13 +172,15 @@ export class CanvasEngine {
         const groups = new Map();
 
         for (const node of this.nodes) {
-            const tag = node.tag || "Untagged";
+            const tags = node.tags?.length ? node.tags : ["untagged"];
 
-            if (!groups.has(tag)) {
-                groups.set(tag, []);
+            for (const tag of tags) {
+                if (!groups.has(tag)) {
+                    groups.set(tag,[]);
+                }
+
+                groups.get(tag).push(node);
             }
-
-            groups.get(tag).push(node);
         }
 
         return groups;
@@ -195,14 +197,13 @@ export class CanvasEngine {
 
         this.nodes =
             data.nodes.map(
-                n =>
-                    new WordNode(
-                        n.id,
-                        n.text,
-                        n.tag,
-                        n.x,
-                        n.y
-                    )
+                n => new WordNode(
+                    n.id,
+                    n.text,
+                    n.tags || [],
+                    n.x,
+                    n.y
+                )
             );
 
         this.connections =

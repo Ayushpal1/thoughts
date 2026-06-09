@@ -4,7 +4,7 @@ export class WordNode extends Drawable {
     constructor(
         id,
         text,
-        tag,
+        tags,
         x,
         y
     ) {
@@ -12,7 +12,7 @@ export class WordNode extends Drawable {
 
         this.id = id;
         this.text = text;
-        this.tag = tag;
+        this.tags = tags;
 
         this.x = x;
         this.y = y;
